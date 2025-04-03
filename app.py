@@ -1,30 +1,35 @@
 import os
-from flask import Flask, request, render_template
 import pytesseract
-from pdf2image import convert_from_path
+from flask import Flask, request, render_template
+from pdf2image import convert_from_bytes
 
 app = Flask(__name__)
 
+# Set the explicit path for Tesseract on Render
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+
 @app.route("/", methods=["GET", "POST"])
 def index():
-    extracted_text = None
+    extracted_text = ""
+    
     if request.method == "POST":
-        if "pdf" not in request.files:
+        if "pdf_file" not in request.files:
             return "No file part"
         
-        file = request.files["pdf"]
+        file = request.files["pdf_file"]
+        
         if file.filename == "":
             return "No selected file"
         
         if file:
-            filepath = os.path.join("uploads", file.filename)
-            file.save(filepath)
-
-            images = convert_from_path(filepath)
+            # Convert PDF to images
+            images = convert_from_bytes(file.read())
+            
+            # Extract text from images using Tesseract OCR
             extracted_text = "\n".join([pytesseract.image_to_string(img) for img in images])
 
-    return render_template("index.html", text=extracted_text)
+    return render_template("index.html", extracted_text=extracted_text)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Use PORT from environment for deployment
-    app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 5000))  # Use correct port for deployment
+    app.run(host="0.0.0.0", port=port, debug=True)
