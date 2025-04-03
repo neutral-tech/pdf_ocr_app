@@ -1,0 +1,6 @@
+Flask
+gunicorn
+pytesseract
+pdf2image
+pillow
+poppler-utils
