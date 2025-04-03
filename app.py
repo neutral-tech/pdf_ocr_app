@@ -22,10 +22,10 @@ def index():
     extracted_text = ""
     
     if request.method == "POST":
-        if "pdf_file" not in request.files:
+        if "pdf" not in request.files:
             return "No file part"
         
-        file = request.files["pdf_file"]
+        file = request.files["pdf"]
         
         if file.filename == "":
             return "No selected file"
