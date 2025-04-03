@@ -1,11 +1,20 @@
 import os
+import subprocess
 import pytesseract
 from flask import Flask, request, render_template
 from pdf2image import convert_from_bytes
 
 app = Flask(__name__)
 
-# Set the explicit path for Tesseract on Render
+# Install Tesseract and Poppler at runtime if not installed
+try:
+    subprocess.run(["tesseract", "--version"], check=True)
+except FileNotFoundError:
+    print("Installing Tesseract and Poppler...")
+    subprocess.run(["apt-get", "update"])
+    subprocess.run(["apt-get", "install", "-y", "tesseract-ocr", "poppler-utils"])
+
+# Set the Tesseract path
 pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
 @app.route("/", methods=["GET", "POST"])
@@ -31,5 +40,5 @@ def index():
     return render_template("index.html", extracted_text=extracted_text)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Use correct port for deployment
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
